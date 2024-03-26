@@ -1,56 +1,41 @@
-// Inclusion de bibliotecas
 #include <stdio.h>
-#include <math.h>
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
-#include "hardware/i2c.h"
-#include "lcd_i2c.h"
+#include <math.h>
 
-/*
- * @brief Programa principal
- */ 
-int main() {
-    // Variable para almacenar el resultado del ADC
-    uint16_t adc_value = 0;
-    // Variable para guardar el valor de temperatura
-    float temperatura = 0.0;
-    // Constante de proporcionalidad del termistor
-    const uint16_t beta = 3950;
-    // Habilito USB
-    stdio_init_all();
-    // Configuro el I2C0 a 100 KHz de clock
-    i2c_init(i2c0, 100 * 1000);
-    // Elijo GPIO4 como linea de SDA
-    gpio_set_function(4, GPIO_FUNC_I2C);
-    // Elijo GPIO5 como linea de SCL
-    gpio_set_function(5, GPIO_FUNC_I2C);
-    // Activo pull-up en ambos GPIO, son debiles por lo que
-    // es recomendable usar pull-ups externas
-    gpio_pull_up(4);
-    gpio_pull_up(5);
-    // Inicializacion del LCD
-    lcd_init();
-    // Inicializo ADC
+int main(){
+	
+	stdio_init_all();
+	adc_init();
+	adc_gpio_init(27);
 
-    // Inicializo GPIO26 como entrada analogica
+	adc_select_input(1);
+	while(true) {
+		sleep_ms(1000);
+		uint16_t adler = adc_read();
+		float Vreal = adler * (3.3 / 4096);
+		printf("ADC: %d\n", adler);
+		printf("Tension: %.2f\n", Vreal);
+		//float Rntc=(Vreal*4700)/(3.3-Vreal);
+		float I=(3.3-Vreal)/(4700);
+		float Rntc = Vreal / I; 
+		printf("Rntc = %.2f\n", Rntc);
 
-    // Selecciono canal analogico
+		
+		float steinhart = 4700 / Rntc;
+		steinhart = log(steinhart);
+		steinhart /= 3380;
+		steinhart+= 1 /(25+273.15);
+		steinhart = 1 /steinhart;
+		steinhart -= 273.15;
 
-    while(true) {
-        // Leer NTC
-        
-        // Calculo temperatura
-        
-        // Limpio LCD
-        lcd_clear();
-        // Variable para el string
-        char str[16];
-        // Creo string
-        
-        // Imprimo string en segunda fila
-        lcd_string(str);
-        // Espero 500 ms
-        sleep_ms(500);
-    }
-    return 0;
+		float A= 3380*25;
+		float B= 298*(log(4700/Rntc))+3380;
+		float temp = (A/B);
+
+
+
+		printf("temp: %.2f\n",steinhart);
+		printf("temp2: %.2f\n",temp);
+	}
 }
