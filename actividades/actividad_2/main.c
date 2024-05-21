@@ -13,11 +13,22 @@ int main() {
     stdio_init_all();
 
     // Inicializacion de I2C
+    i2c_init(i2c0, 1000 * 100);
+    i2c_init(i2c1, 1000 * 100);
+    gpio_set_function(4, GPIO_FUNC_I2C);
+    gpio_set_function(5, GPIO_FUNC_I2C);
+    gpio_pull_up(4);
+    gpio_pull_up(5);
 
+    gpio_set_function(2, GPIO_FUNC_I2C);
+    gpio_set_function(3, GPIO_FUNC_I2C);
+    gpio_pull_up(2);
+    gpio_pull_up(3);
     // Inicializacion del LCD
     lcd_init(i2c0, 0x27);
     // Inicializo BMP280
     bmp280_init();
+
 
     // Obtengo parametros de compensacion
     struct bmp280_calib_param params;
